@@ -264,7 +264,6 @@ class FSCM(nn.Module):
         fused = self.final_conv(merged)
 
         # gating
-        asg_out = self.asg(fused)
-        out = asg_out + avg_orig  # residual
+        out = self.asg(fused)
 
         return out
