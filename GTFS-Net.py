@@ -69,35 +69,40 @@ class GTFS_Net(nn.Module):
         x1_dsm = self.encoder_dsm.stage1(x0_dsm)
         xr1_opt, xr1_dsm = self.corr1(x1_opt, x1_dsm)  # 1/4
         f1_dsm = xr1_dsm + x1_dsm
+        f1_opt = xr1_opt + x1_opt
 
         # stage 2
-        x2_opt = self.encoder_opt.stage2(xr1_opt + x1_opt)
-        x2_dsm = self.encoder_dsm.stage2(xr1_dsm + x1_dsm)
+        x2_opt = self.encoder_opt.stage2(f1_opt)
+        x2_dsm = self.encoder_dsm.stage2(f1_dsm)
         xr2_opt, xr2_dsm = self.corr2(x2_opt, x2_dsm)  # 1/8
         f2_dsm = xr2_dsm + x2_dsm
+        f2_opt = xr2_opt + x2_opt
 
         # stage 3
-        x3_opt = self.encoder_opt.stage3(xr2_opt + x2_opt)
-        x3_dsm = self.encoder_dsm.stage3(xr2_dsm + x2_dsm)
+        x3_opt = self.encoder_opt.stage3(f2_opt)
+        x3_dsm = self.encoder_dsm.stage3(f2_dsm)
         xr3_opt, xr3_dsm = self.corr3(x3_opt, x3_dsm)  # 1/16
         f3_dsm = xr3_dsm + x3_dsm
+        f3_opt = xr3_opt + x3_opt
 
         # stage 4
-        x4_opt = self.encoder_opt.stage4(xr3_opt + x3_opt)
-        x4_dsm = self.encoder_dsm.stage4(xr3_dsm + x3_dsm)
+        x4_opt = self.encoder_opt.stage4(f3_opt)
+        x4_dsm = self.encoder_dsm.stage4(f3_dsm)
         xr4_opt, xr4_dsm = self.corr4(x4_opt, x4_dsm)  # 1/32
+        f4_dsm = xr4_dsm + x4_dsm
+        f4_opt = xr4_opt + x4_opt
 
         # Decoder
-        f4 = self.fusion4(xr4_opt, xr4_dsm)
+        f4 = self.fusion4(f4_opt, f4_dsm)
         f4 = F.interpolate(f4, scale_factor=2, mode='bilinear', align_corners=False)
 
-        f3 = self.fusion3(xr3_opt, xr3_dsm)
+        f3 = self.fusion3(f3_opt, f3_dsm)
         d3_4 = self.decoder3(f4, f3, f3_dsm)
 
-        f2 = self.fusion2(xr2_opt, xr2_dsm)
+        f2 = self.fusion2(f2_opt, f2_dsm)
         d2_3 = self.decoder2(d3_4, f2, f2_dsm )
 
-        f1 = self.fusion1(xr1_opt, xr1_dsm)
+        f1 = self.fusion1(f1_opt, f1_dsm)
         d1_2 = self.decoder1(d2_3, f1, f1_dsm)
 
         out = self.out(d1_2)
