@@ -32,9 +32,9 @@ def GTSP(x):
     # collapse channels:
     return mag.mean(dim=1, keepdim=True)  # [B,1,H,W]
 
-class GTCS(nn.Module):
+class SGCS(nn.Module):
     """
-    Geometry–Texture Aware Channel Selection (GTCS)
+    Structure-Guided Channel Selection (SGCS)
     Soft Top-k Guided Channel Gating
     """
     def __init__(self, channels, reduction=8, keep_ratio=0.7, tau=0.1):
@@ -188,9 +188,9 @@ class SGAM(nn.Module):
         gamma = torch.tanh(gamma)
         return fused_feat * (1.0 + gamma) + beta
 
-class GTCM(nn.Module):
+class SGCM(nn.Module):
     """
-    Geometry–Texture Guided Cross-Modality Correction Module
+    Structure-Guided Cross-Modal Correction Module
     """
     def __init__(self, channels, reduction=8, keep_ratio=0.7, num_heads=4, token_ds=4, use_geom_prior=True):
         super().__init__()
@@ -200,8 +200,8 @@ class GTCM(nn.Module):
         self.use_geom_prior = use_geom_prior
 
         # soft channel select + expand for both modalities
-        self.select_opt = GTCS(channels, reduction=reduction, keep_ratio=keep_ratio)
-        self.select_dsm = GTCS(channels, reduction=reduction, keep_ratio=keep_ratio)
+        self.select_opt = SGCS(channels, reduction=reduction, keep_ratio=keep_ratio)
+        self.select_dsm = SGCS(channels, reduction=reduction, keep_ratio=keep_ratio)
 
         # cross attention modules (bidirectional)
         self.cross_opt = PGCA(channels, num_heads=num_heads, token_ds=token_ds)
