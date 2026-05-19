@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from src.model.GTCM import GTCM
+from src.model.SGCM import SGCM
 from src.model.FSCM import FSCM
 from src.model.GACS import GACS
 from src.utils.utils import *
@@ -25,10 +25,10 @@ class PVT_V2_b2(nn.Module):
         # Out channels
         self.out_channels = [64, 128, 320, 512]
 
-class GTFS_Net(nn.Module):
+class GCF_Net(nn.Module):
     """
-    Geometry–Texture and Frequency–Spatial Collaborative Learning
-    for Cross-Modality Remote Sensing Segmentation
+    Stage-Aligned Geometry-Consistent Fusion Network for
+    Optical–DSM Remote Sensing Semantic Segmentation
     """
     def __init__(self, num_classes=6):
         super(GTFS_Net, self).__init__()
@@ -37,10 +37,10 @@ class GTFS_Net(nn.Module):
         # [64, 128, 320, 512]
         out_channels = self.encoder_opt.out_channels
 
-        self.corr1 = GTCM(out_channels[0])
-        self.corr2 = GTCM(out_channels[1])
-        self.corr3 = GTCM(out_channels[2])
-        self.corr4 = GTCM(out_channels[3])
+        self.corr1 = SGCM(out_channels[0])
+        self.corr2 = SGCM(out_channels[1])
+        self.corr3 = SGCM(out_channels[2])
+        self.corr4 = SGCM(out_channels[3])
 
         self.fusion1 = FSCM(out_channels[0])
         self.fusion2 = FSCM(out_channels[1])
@@ -116,16 +116,7 @@ def count_trainable_params(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-if __name__ == "__main__":
-    model = GTFS_Net()
 
-    opt_backbone = model.encoder_opt
-    dsm_backbone = model.encoder_dsm
-
-    print("OPT backbone params:", count_params(opt_backbone) / 1e6, "M")
-    print("DSM backbone params:", count_params(dsm_backbone) / 1e6, "M")
-    print("OPT backbone trainable params:", count_trainable_params(opt_backbone) / 1e6, "M")
-    compute_model_complexity(model, [(3, 256, 256), (1, 256, 256)])
 
 
 
